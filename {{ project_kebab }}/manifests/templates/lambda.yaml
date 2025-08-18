@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.lambda.fullname }}
+spec:
+  replicas: {{ .Values.deployment.lambda.replicas }}
+  selector:
+    matchLabels:
+      {{- toYaml .Values.selectorLabels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- toYaml .Values.selectorLabels | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.deployment.lambda.name }}
+          image: "{{ .Values.deployment.lambda.image.repository }}:{{ .Values.deployment.lambda.image.tag }}"
+          imagePullPolicy: {{ .Values.deployment.lambda.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.deployment.lambda.container.port }}
+              protocol: TCP
+          {{- if .Values.deployment.lambda.container.env }}
+          env:
+            {{- toYaml .Values.deployment.lambda.container.env | nindent 12 }}
+          {{- end }}
+          {{- if .Values.deployment.lambda.resources }}
+          resources:
+            {{- toYaml .Values.deployment.lambda.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.debug.enabled }}
+          - name: debug
+            containerPort: {{ .Values.debug.port }}
+            protocol: TCP
+          {{- end }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.lambda.fullname }}
+spec:
+  type: {{ .Values.service.lambda.type }}
+  ports:
+    - port: {{ .Values.service.lambda.port }}
+      targetPort: {{ .Values.service.lambda.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- toYaml .Values.selectorLabels | nindent 4 }}
+

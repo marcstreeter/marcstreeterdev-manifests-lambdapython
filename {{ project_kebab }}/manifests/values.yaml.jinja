@@ -1,0 +1,56 @@
+# Default values for {{ project_chart }}
+# This is a YAML-formatted file.
+
+# Project configuration
+project_name: "{{ project_kebab }}"
+environment: "development"
+
+# Selectors
+selectorLabels:
+  app: "{{ project_chart }}"
+  project: "{{ project_kebab }}-local"
+
+# Service configuration
+service:
+  lambda:
+    type: "ClusterIP"
+    port: {{ interface_port }}
+    targetPort: {{ interface_port }}
+    fullname: "{{ project_chart }}"
+
+# Deployment configuration
+deployment:
+  lambda:
+    name: "lambda"
+    fullname: "{{ project_chart }}"
+    image:
+      repository: "lambda"
+      tag: "latest"
+      pullPolicy: "IfNotPresent"
+    replicas: 1
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
+    container:
+      port: {{ interface_port }}
+      env: []
+      # Add environment variables as needed
+      # env:
+      #   - name: DEBUG
+      #     value: "true"
+
+# Port forwarding for local development
+portForward:
+  enabled: true
+  localPort: {{ tilt_interface_port }}
+  containerPort: {{ interface_port }}
+
+# Debug configuration
+debug:
+  enabled: false
+  port: 5678
+  localPort: 18089

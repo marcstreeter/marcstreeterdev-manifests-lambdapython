@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lambda-interface
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lambda-interface
+  template:
+    metadata:
+      labels:
+        app: lambda-interface
+    spec:
+      containers:
+      - name: nginx
+        image: lambda-interface:latest
+        ports:
+        - containerPort: 80
