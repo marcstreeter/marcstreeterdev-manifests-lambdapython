@@ -1,19 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lambda-interface
+  name: {{ .Values.interface.name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.interface.replicas }}
   selector:
     matchLabels:
-      app: lambda-interface
+      {{- toYaml .Values.interface.selectorLabels | nindent 6 }}
   template:
     metadata:
       labels:
-        app: lambda-interface
+        {{- toYaml .Values.interface.selectorLabels | nindent 8}}
     spec:
       containers:
-      - name: nginx
-        image: lambda-interface:latest
+      - name: {{ .Values.interface.name }}
+        image: "{{ .Values.interface.image.name }}:{{ .Values.interface.image.tag }}"
+        imagePullPolicy: {{ .Values.interface.image.pullPolicy }}
         ports:
-        - containerPort: 80
+        - name: {{ .Values.interface.portName }}
+          containerPort: {{ .Values.interface.port }}
+          protocol: {{ .Values.interface.protocol }}
+        {{- if .Values.interface.env }}
+        env:
+          {{- toYaml .Values.interface.env | nindent 12 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.interface.resources | nindent 12 }}

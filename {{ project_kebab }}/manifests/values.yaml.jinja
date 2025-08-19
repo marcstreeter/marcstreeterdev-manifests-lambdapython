@@ -5,52 +5,61 @@
 project_name: "{{ project_kebab }}"
 environment: "development"
 
-# Selectors
-selectorLabels:
-  app: "{{ project_chart }}"
-  project: "{{ project_kebab }}-local"
+# General Lambda
+lambda:
+  env: []
+  # Add environment variables as needed
+  # env:
+  #   - name: DEBUG
+  #     value: "true"
+  selectorLabels:
+    app: "{{ project_chart }}"
+    service: "{{ project_kebab }}-lambda"
+  name: "{{ project_kebab }}-lambda"
+  image:
+    name: "{{ project_kebab }}-lambda"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  replicas: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+  serviceType: "ClusterIP"
+  port: {{ lambda_port }}
+  portName: {{ lambda_port_name }}
+  protocol: "TCP"
+  debug:
+    enabled: false
+    port: {{ lambda_port_debug }}
+    portName: {{ lambda_port_debug_name }}
+    protocol: "TCP"
 
-# Service configuration
-service:
-  lambda:
-    type: "ClusterIP"
-    port: {{ interface_port }}
-    targetPort: {{ interface_port }}
-    fullname: "{{ project_chart }}"
-
-# Deployment configuration
-deployment:
-  lambda:
-    name: "lambda"
-    fullname: "{{ project_chart }}"
-    image:
-      repository: "lambda"
-      tag: "latest"
-      pullPolicy: "IfNotPresent"
-    replicas: 1
-    resources:
-      limits:
-        cpu: "500m"
-        memory: "512Mi"
-      requests:
-        cpu: "250m"
-        memory: "256Mi"
-    container:
-      port: {{ interface_port }}
-      env: []
-      # Add environment variables as needed
-      # env:
-      #   - name: DEBUG
-      #     value: "true"
-
-# Port forwarding for local development
-portForward:
-  enabled: true
-  localPort: {{ tilt_interface_port }}
-  containerPort: {{ interface_port }}
-
-# Debug configuration
-debug:
-  enabled: false
-  port: 5678
-  localPort: 18089
+interface:
+  env: []
+  # Add environment variables as needed
+  # env:
+  #   - name: DEBUG
+  #     value: "true"
+  name: "{{ project_kebab }}-interface"
+  image:
+    name: "{{ project_kebab }}-interface"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  replicas: 1
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+  selectorLabels:
+    app: "{{ project_chart }}"
+    service: "{{ project_kebab }}-interface"
+  port: {{ interface_port }}
+  portName: {{ interface_port_name }}
+  protocol: "TCP"

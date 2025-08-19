@@ -1,4 +1,4 @@
-# Tiltfile
+# Tiltfile for {{ project_name }}
 
 # checks
 allow_k8s_contexts('docker-desktop')
@@ -11,7 +11,7 @@ DOTENV = dotenv() or {}
 
 # Define the Docker image for the Lambda service
 docker_build(
-  'lambda',
+  '{{ project_lambda }}',
   '.',
   dockerfile='Dockerfile',
   # entrypoint=["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "main"],
@@ -22,7 +22,7 @@ docker_build(
 
 # Define the interface service using nginx image
 docker_build(
-  '{{ project_kebab }}-interface',
+  '{{ project_interface }}',
   '.',
   dockerfile='interface/Dockerfile',
   live_update=[
@@ -46,13 +46,19 @@ k8s_yaml(
       ]
   )
 )
-# Forward the container port 80 to the host port 18085
-k8s_resource('{{ project_kebab }}-interface', port_forwards='18085:80')
+# Forward the container port {{ lambda_port }} to the host port {{ tilt_lambda_port }}
 k8s_resource(
-    workload='{{ project_chart }}',
+    workload='{{ project_lambda }}',
     port_forwards=[
-        '{{ tilt_interface_port }}:{{ interface_port }}',  # HTTP port
-        # "18089:5678" # DebugPy port
+        '{{ tilt_lambda_port }}:{{ lambda_port }}',  # {{ lambda_port_name }}  port
+        # "{{ tilt_lambda_port_debug }}:{{ lambda_port_debug }}" # {{ lambda_port_debug_name }} port
     ],
-    # resource_deps=['{{ project_chart }}']
+)
+# Forward the container port {{ interface_port }} to the host port {{ tilt_interface_port }}
+k8s_resource(
+  workload='{{ project_interface }}',
+  port_forwards=[
+    '{{ tilt_interface_port }}:{{ interface_port }}', # {{ interface_port_name }} port
+  ],
+  resource_deps=['{{ project_lambda }}']
 )

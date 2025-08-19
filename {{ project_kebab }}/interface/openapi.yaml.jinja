@@ -3,7 +3,7 @@ info:
   title: Lambda Test API
   version: 1.0.0
 servers:
-  - url: http://localhost:18085
+  - url: http://localhost:{{ tilt_interface_port }}
     description: Local development server
 paths:
   /2015-03-31/functions/function/invocations:
@@ -27,7 +27,7 @@ paths:
               valid:
                 value:
                   rsvp_total: 2
-                  rsvp_name: From PyCharm With Love
+                  rsvp_name: From Scalar With Love
               invalid:
                 value:
                   rsvp_total: 20

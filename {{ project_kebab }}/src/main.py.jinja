@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         body = parse_request_body(event)
         
         response_data = {
-            "message": "Hello again from Lambda!",
+            "message": "Hello again from the {{ project_name }} Lambda!",
             "event": body,
             "statusCode": 200
         }

@@ -1,4 +1,4 @@
-# Justfile for {{ project_kebab }} project
+# Justfile for {{ project_name }} project
 # Commands for managing AWS infrastructure and Lambda deployment
 set dotenv-load
 
@@ -29,22 +29,22 @@ _check-kubectl:
 
 _with-context: _check-kubectl
     #!/usr/bin/env bash
-    if ! kubectl config get-contexts {{context}} &> /dev/null; then
+    if ! kubectl config get-contexts {% raw %}{{context}}{% endraw %} &> /dev/null; then
         echo "Error: context {{context}} is not found. Please check your kubeconfig file."
         exit 1
     fi
     
-    if ! kubectl config use-context {{context}}; then
+    if ! kubectl config use-context {% raw %}{{context}}{% endraw %}; then
         echo "Error: Failed to switch to context {{context}}"
         exit 1
     fi
     
 _check-namespace: _with-context
     #!/usr/bin/env bash
-    if ! kubectl get namespace {{namespace}} &> /dev/null; then
-        echo "Warning: namespace {{namespace}} does not exist. Creating it..."
-        if ! kubectl create namespace {{namespace}}; then
-            echo "Error: Failed to create namespace {{namespace}}"
+    if ! kubectl get namespace {% raw %}{{namespace}}{% endraw %} &> /dev/null; then
+        echo "Warning: namespace {% raw %}{{namespace}}{% endraw %} does not exist. Creating it..."
+        if ! kubectl create namespace {% raw %}{{namespace}}{% endraw %}; then
+            echo "Error: Failed to create namespace {% raw %}{{namespace}}{% endraw %}"
             exit 1
         fi
     fi
@@ -75,14 +75,15 @@ _check-env:
         fi
     done
     
-    if [ ${#missing_vars[@]} -gt 0 ]; then
+    if [ ${% raw %}{#missing_vars[@]}{% endraw %} -gt 0 ]; then
         echo "❌ Missing required environment variables:"
         for var in "${missing_vars[@]}"; do
             echo "   - $var"
         done
         echo ""
         echo "Please ensure these variables are set in your environment."
-        echo "You can create a .env file from env.example: cp env.example .env"
+        echo "👀 Create a .env file from env.example: cp .env.example .env"
+        echo "  NOTE: override defaults as desired"
         exit 1
     fi
 
@@ -165,6 +166,10 @@ _check-backend:
     fi
     echo "✅ S3 backend bucket '$TERRAFORM_STATE_BUCKET' exists"
 
+# Prepares repository for development
+@prepare:
+    echo "✅ no prep setup just yet"
+
 # Complete project setup and deployment
 # Sets up infrastructure, GitHub secrets, and deploys everything in the correct order
 setup: _check-gh _check-aws-cli _check-terraform _check-env
@@ -194,9 +199,9 @@ setup: _check-gh _check-aws-cli _check-terraform _check-env
     terraform apply -auto-approve \
         -var="project_name=$PROJECT_NAME" \
         -var="aws_region=$AWS_REGION" \
-        -var="lambda_timeout=${LAMBDA_TIMEOUT:-30}" \
-        -var="lambda_memory_size=${LAMBDA_MEMORY_SIZE:-128}" \
-        -var="cloudwatch_log_retention=${CLOUDWATCH_LOG_RETENTION:-7}" \
+        -var="lambda_timeout=${LAMBDA_TIMEOUT:-{{ lambda_timeout }}}" \
+        -var="lambda_memory_size=${LAMBDA_MEMORY_SIZE:-{{ lambda_memory_size }}}" \
+        -var="cloudwatch_log_retention=${CLOUDWATCH_LOG_RETENTION:-{{ cloudwatch_log_retention }}}" \
         -var="owner=${GITHUB_OWNER}" \
         -var="repository=${REPO_NAME}"
     echo ""
@@ -318,9 +323,9 @@ teardown: _check-gh _check-aws-cli _check-terraform _check-env
             if ! terraform destroy -auto-approve \
                 -var="project_name=$PROJECT_NAME" \
                 -var="aws_region=$AWS_REGION" \
-                -var="lambda_timeout=${LAMBDA_TIMEOUT:-30}" \
-                -var="lambda_memory_size=${LAMBDA_MEMORY_SIZE:-128}" \
-                -var="cloudwatch_log_retention=${CLOUDWATCH_LOG_RETENTION:-7}" \
+                -var="lambda_timeout=${LAMBDA_TIMEOUT:-{{ lambda_timeout }}}" \
+                -var="lambda_memory_size=${LAMBDA_MEMORY_SIZE:-{{ lambda_memory_size }}}" \
+                -var="cloudwatch_log_retention=${CLOUDWATCH_LOG_RETENTION:-{{ cloudwatch_log_retention }}}" \
                 -var="owner=$(gh api user --jq '.login')" \
                 -var="repository=$(gh repo view --json name --jq '.name')"; then
                 echo "❌ Terraform destroy failed"
