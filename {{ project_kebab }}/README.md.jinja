@@ -42,6 +42,8 @@ This project is designed to be portable but you must fill in `.env` (`.env.examp
 ## Testing
 
 ### Send Valid Request
+There a couple ways to test a running copy of the local lambda:
+
 ```http
 POST http://localhost:{{ tilt_interface_port }}/2015-03-31/functions/function/invocations
 Content-Type: application/json
@@ -50,3 +52,9 @@ Content-Type: application/json
   "rsvp_total": 2,
   "rsvp_name": "From PyCharm With Love"
 }
+```
+
+You can also run test payloads locally using Tilt's "interface" endpoint when running:
+```
+just dev
+```
