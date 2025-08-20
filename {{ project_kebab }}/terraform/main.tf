@@ -51,6 +51,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "lambda_artifacts" {
     id     = "cleanup_old_versions"
     status = "Enabled"
     
+    filter {
+      prefix = ""
+    }
+    
     noncurrent_version_expiration {
       noncurrent_days = var.cloudwatch_log_retention
     }
@@ -167,7 +171,8 @@ resource "aws_iam_policy" "github_actions_lambda" {
           "lambda:GetFunction",
           "lambda:UpdateFunctionCode",
           "lambda:UpdateFunctionConfiguration",
-          "lambda:GetFunctionConfiguration"
+          "lambda:GetFunctionConfiguration",
+          "lambda:CreateFunction"
         ]
         Resource = aws_lambda_function.main.arn
       },

@@ -10,8 +10,8 @@ on:
 
 env:
   PYTHON_VERSION: '3.12'
-  AWS_REGION: ${{ secrets.AWS_LAMBDA_REGION }}
-  FUNCTION_NAME: ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}
+  AWS_REGION: ${{ vars.AWS_LAMBDA_REGION }}
+  FUNCTION_NAME: ${{ vars.AWS_LAMBDA_FUNCTION_NAME }}
 
 jobs:
   deploy:
@@ -34,20 +34,20 @@ jobs:
           fi
           
           # Check Lambda configuration
-          if [ -z "${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}" ] || [ -z "${{ secrets.AWS_LAMBDA_REGION }}" ] || [ -z "${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}" ]; then
+          if [ -z "${{ vars.AWS_LAMBDA_FUNCTION_NAME }}" ] || [ -z "${{ vars.AWS_LAMBDA_REGION }}" ] || [ -z "${{ vars.AWS_LAMBDA_EXECUTION_ROLE_ARN }}" ]; then
             echo "❌ Missing Lambda configuration"
-            echo "Please configure the following secrets:"
+            echo "Please configure the following variables:"
             echo "   AWS_LAMBDA_FUNCTION_NAME"
             echo "   AWS_LAMBDA_REGION" 
             echo "   AWS_LAMBDA_EXECUTION_ROLE_ARN"
-            echo "NOTE: Set these secrets using the 'just' command from the root of this repository"
+            echo "NOTE: Set these variables using the 'just' command from the root of this repository"
             exit 1
           fi
           
-          echo "✅ All required secrets are present"
-          echo "   Function: ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}"
-          echo "   Region: ${{ secrets.AWS_LAMBDA_REGION }}"
-          echo "   Role: ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}"
+          echo "✅ All required variables are present"
+          echo "   Function: ${{ vars.AWS_LAMBDA_FUNCTION_NAME }}"
+          echo "   Region: ${{ vars.AWS_LAMBDA_REGION }}"
+          echo "   Role: ${{ vars.AWS_LAMBDA_EXECUTION_ROLE_ARN }}"
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -80,8 +80,8 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_LAMBDA_FUNCTION_NAME: ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}
-          AWS_LAMBDA_REGION: ${{ secrets.AWS_LAMBDA_REGION }}
+          AWS_LAMBDA_FUNCTION_NAME: ${{ vars.AWS_LAMBDA_FUNCTION_NAME }}
+          AWS_LAMBDA_REGION: ${{ vars.AWS_LAMBDA_REGION }}
         run: |
           # Check if function exists
           if aws lambda get-function --function-name $AWS_LAMBDA_FUNCTION_NAME --region $AWS_LAMBDA_REGION 2>/dev/null; then
@@ -100,7 +100,7 @@ jobs:
               --function-name $AWS_LAMBDA_FUNCTION_NAME \
               --timeout 30 \
               --memory-size 128 \
-              --environment Variables='{ENVIRONMENT=production,PROJECT=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}}' \
+              --environment Variables='{ENVIRONMENT="production",PROJECT="${{ vars.AWS_LAMBDA_FUNCTION_NAME }}"}' \
               --region $AWS_LAMBDA_REGION
           else
             echo "Creating new Lambda function..."
@@ -109,36 +109,37 @@ jobs:
             aws lambda create-function \
               --function-name $AWS_LAMBDA_FUNCTION_NAME \
               --runtime python3.12 \
-              --role ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }} \
+              --role ${{ vars.AWS_LAMBDA_EXECUTION_ROLE_ARN }} \
               --handler main.lambda_handler \
               --zip-file fileb://lambda.zip \
               --timeout 30 \
               --memory-size 128 \
-              --environment Variables='{ENVIRONMENT=production,PROJECT=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}}' \
-              --tags Key=Name,Value=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }} Key=Project,Value=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }} Key=Environment,Value=production \
+              --environment Variables='{ENVIRONMENT="production",PROJECT="${{ vars.AWS_LAMBDA_FUNCTION_NAME }}"}' \
+              --tags Name="${{ vars.AWS_LAMBDA_FUNCTION_NAME }}",Project="${{ vars.AWS_LAMBDA_FUNCTION_NAME }}",Environment="production" \
               --region $AWS_LAMBDA_REGION
           fi
 
-          echo "✅ Lambda Deployment complete"
-          echo "   Function: ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}"
-          echo "   Region: ${{ secrets.AWS_LAMBDA_REGION }}"
-          echo "   Role: ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}"
-          echo ""
-          echo "🔗 AWS Lambda Console URL:"
-          echo "   https://${{ secrets.AWS_LAMBDA_REGION }}.console.aws.amazon.com/lambda/home?region=${{ secrets.AWS_LAMBDA_REGION }}#/functions/${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}"
-          echo ""
-          echo "📋 Quick Actions:"
-          echo "   • View function details and logs"
-          echo "   • Test the function"
-          echo "   • Monitor metrics and performance"
-          echo ""
+          {
+            echo "✅ Lambda Deployment complete"
+            echo "   - Function: ${{ vars.AWS_LAMBDA_FUNCTION_NAME }}"
+            echo "   - Region: ${{ vars.AWS_LAMBDA_REGION }}"
+            echo "   - Role: ${{ vars.AWS_LAMBDA_EXECUTION_ROLE_ARN }}"
+            echo ""
+            echo "🔗 AWS Lambda Console URL for [${{ vars.AWS_LAMBDA_FUNCTION_NAME }} Lambda Console](https://${{ vars.AWS_LAMBDA_REGION }}.console.aws.amazon.com/lambda/home?region=${{ vars.AWS_LAMBDA_REGION }}#/functions/${{ vars.AWS_LAMBDA_FUNCTION_NAME }})"
+            echo ""
+            echo "📋 Quick Actions:"
+            echo "   • View function details and logs"
+            echo "   • Test the function"
+            echo "   • Monitor metrics and performance"
+            echo ""
+          }  >> $GITHUB_STEP_SUMMARY
 
       # - name: Test Lambda (TODO user not authorized to perform: lambda:InvokeFunction)
       #   env:
       #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     AWS_LAMBDA_FUNCTION_NAME: ${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}
-      #     AWS_LAMBDA_REGION: ${{ secrets.AWS_LAMBDA_REGION }}
+      #     AWS_LAMBDA_FUNCTION_NAME: ${{ vars.AWS_LAMBDA_FUNCTION_NAME }}
+      #     AWS_LAMBDA_REGION: ${{ vars.AWS_LAMBDA_REGION }}
       #   run: |
       #     # Wait for function to be ready
       #     aws lambda wait function-updated --function-name $AWS_LAMBDA_FUNCTION_NAME --region $AWS_LAMBDA_REGION
