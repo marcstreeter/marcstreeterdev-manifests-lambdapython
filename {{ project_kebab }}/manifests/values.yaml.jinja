@@ -1,4 +1,4 @@
-# Default values for {{ project_chart }}
+# Default values for {{ project_name }}
 # This is a YAML-formatted file.
 
 # Project configuration
@@ -13,7 +13,7 @@ lambda:
   #   - name: DEBUG
   #     value: "true"
   selectorLabels:
-    app: "{{ project_chart }}"
+    app: "{{ project_kebab }}"
     service: "{{ project_kebab }}-lambda"
   name: "{{ project_kebab }}-lambda"
   image:
@@ -58,7 +58,7 @@ interface:
       cpu: "250m"
       memory: "256Mi"
   selectorLabels:
-    app: "{{ project_chart }}"
+    app: "{{ project_kebab }}"
     service: "{{ project_kebab }}-interface"
   port: {{ interface_port }}
   portName: {{ interface_port_name }}

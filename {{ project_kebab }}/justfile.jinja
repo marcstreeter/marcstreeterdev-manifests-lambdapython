@@ -30,12 +30,12 @@ _check-kubectl:
 _with-context: _check-kubectl
     #!/usr/bin/env bash
     if ! kubectl config get-contexts {% raw %}{{context}}{% endraw %} &> /dev/null; then
-        echo "Error: context {{context}} is not found. Please check your kubeconfig file."
+        echo "Error: context {% raw %}{{context}}{% endraw %} is not found. Please check your kubeconfig file."
         exit 1
     fi
     
     if ! kubectl config use-context {% raw %}{{context}}{% endraw %}; then
-        echo "Error: Failed to switch to context {{context}}"
+        echo "Error: Failed to switch to context {% raw %}{{context}}{% endraw %}"
         exit 1
     fi
     
