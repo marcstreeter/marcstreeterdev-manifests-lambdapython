@@ -16,7 +16,7 @@ RUN mkdir -p /app/deps && pip install -r requirements.txt -t /app/deps
 
 # Stage 2: Final runtime image
 FROM public.ecr.aws/lambda/python:3.12
-ENV _HANDLER=src.main.lambda_handler \
+ENV _HANDLER=main.lambda_handler \
     PYTHONPATH="/opt/python/lib/python3.12/site-packages:$PYTHONPATH" \
     PYDEVD_DISABLE_FILE_VALIDATION=1
 RUN dnf install -y tar  # needed for tilt live_update feature
@@ -35,6 +35,6 @@ EXPOSE 8080
 # Expose port 5678 for debugpy
 EXPOSE 5678
 #
-WORKDIR /var/task
+WORKDIR /var/task/src
 # Use the Lambda Runtime Interface Emulator to start the container in local mode
-CMD ["src.main.lambda_handler"]
+CMD ["main.lambda_handler"]
