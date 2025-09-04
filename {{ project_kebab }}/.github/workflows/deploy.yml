@@ -76,7 +76,7 @@ jobs:
           cd libs && \
           zip -r ../lambda.zip . && \
           cd ../src && \
-          zip -g ../lambda.zip main.py && \
+          zip -r ../lambda.zip . && \
           cd ..
 
       - name: Deploy to AWS Lambda
