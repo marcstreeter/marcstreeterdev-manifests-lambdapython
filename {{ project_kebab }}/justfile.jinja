@@ -394,7 +394,7 @@ teardown: _check-gh _check-aws-cli _check-terraform _check-env
     
     # Define all secrets and variables to check and remove (portable array syntax)
     aws_secrets="AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY"
-    lambda_variables="AWS_LAMBDA_FUNCTION_NAME AWS_LAMBDA_REGION AWS_LAMBDA_EXECUTION_ROLE_ARN"
+    lambda_variables="AWS_LAMBDA_FUNCTION_NAME AWS_LAMBDA_REGION AWS_LAMBDA_EXECUTION_ROLE_ARN API_GATEWAY_URL"
     
     echo "Checking and removing AWS credentials..."
     for secret in $aws_secrets; do
